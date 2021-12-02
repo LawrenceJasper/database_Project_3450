@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content=" width=device-width, initial-scale=1.0">
+
+
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script src="https://maps.googleapis.com/maps/api/staticmap?key=AIzaSyC2kL6zf3UM-tMJnuhWRA4qbDZs6Ce9qHo&center=42.667645503543724,-83.20940028576848&zoom=15&format=png&maptype=roadmap&style=element:geometry%7Ccolor:0x242f3e&style=element:labels.text.fill%7Ccolor:0x746855&style=element:labels.text.stroke%7Ccolor:0x242f3e&style=feature:administrative.locality%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:poi.business%7Cvisibility:off&style=feature:poi.park%7Celement:geometry%7Ccolor:0x263c3f&style=feature:poi.park%7Celement:labels.text%7Cvisibility:off&style=feature:poi.park%7Celement:labels.text.fill%7Ccolor:0x6b9a76&style=feature:poi.school%7Ccolor:0x8bafdf%7Csaturation:-100%7Clightness:-45&style=feature:poi.school%7Celement:labels.text%7Ccolor:0xffffff%7Cvisibility:simplified&style=feature:road%7Celement:geometry%7Ccolor:0x38414e&style=feature:road%7Celement:geometry.stroke%7Ccolor:0x212a37&style=feature:road%7Celement:labels.text.fill%7Ccolor:0x9ca5b3&style=feature:road.highway%7Celement:geometry%7Ccolor:0x746855&style=feature:road.highway%7Celement:geometry.stroke%7Ccolor:0x1f2835&style=feature:road.highway%7Celement:labels.text.fill%7Ccolor:0xf3d19c&style=feature:transit%7Celement:geometry%7Ccolor:0x2f3948&style=feature:transit.station%7Celement:labels.text.fill%7Ccolor:0xd59563&style=feature:water%7Celement:geometry%7Ccolor:0x17263c&style=feature:water%7Celement:labels.text.fill%7Ccolor:0x515c6d&style=feature:water%7Celement:labels.text.stroke%7Ccolor:0x17263c&size=480x360" ></script>
+    <script src ="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script id="lzutf8" src="https://cdn.jsdelivr.net/npm/lzutf8/build/production/lzutf8.js"></script>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lora&family=Titillium+Web&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200&display=swap" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;1,100&display=swap');
+        #map             { position: absolute;height: 60%;  width: 60%; left: 1%; top: 6%; border-radius: 5px; border: 1px solid black; }
+        .textBox         { position: absolute; bottom: 100px; height: 35px; width: 40%; border: 1px solid black; border-radius: 5px; left: 31%;}
+        .btn             { position: absolute; left: 20%; height: 35px; width: 100px; font-family:'Poppins', sans-serif; font-size: 18px; bottom: 100px; cursor: pointer; background-color: green; text-align: center; color: white; font-weight: bold; border-radius: 5px;}
+        html, body       { height: 100%;margin: 0;padding: 0;}
+
+        .sBox {position: absolute; bottom: 100px; left: 1%; width: 60%; height: 200px; border: solid}
+
+        #searchB         { position: relative; height: 45px; width: 150px; left: 1%; background-color: #d5d5d5; font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 18px; border-radius: 5px; cursor: pointer;}
+        #inputB          { position: relative;  height: 40px; width: 220px; left: 1%; background-color: #ffffff; font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 18px; border-radius: 5px; border: solid 1px}
+
+        #ch1             { position: absolute; right: 200px;top: 35px; cursor: pointer}
+        #ch2             { position: absolute; right: 150px;top: 35px; cursor: pointer}
+        #ch3             { position: absolute; right: 100px;top: 35px; cursor: pointer}
+        #ch4             { position: absolute; right: 50px;top: 35px; cursor: pointer}
+        #t1              { position: absolute; right: 200px; top: 1%; font-family: 'Poppins', sans-serif;}
+        #t2              { position: absolute; right: 150px; top: 1%; font-family: 'Poppins', sans-serif;}
+        #t3              { position: absolute; right: 100px; top: 1%; font-family: 'Poppins', sans-serif;}
+        #t4              { position: absolute; right: 50px; top: 1%; font-family: 'Poppins', sans-serif;}
+
+        .btnClass                          { height: 55px; width: 230px; background-color: #464646; border-radius: 2.5px; font-family: 'Poppins', sans-serif; font-size: 16px; border: none; cursor: pointer;  color: white; margin: 10px }
+        .btnClass:active                   { background-color: #000000;box-shadow: 0 2px #666;transform: translateY(2px);}
+        .btnClass:hover                    { color: #1e1e1e; transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;}
+
+        #b1         { position: absolute; height: 45px; width: 150px; left: 1%; bottom: 1%; background-color: #d5d5d5; font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 14px; border-radius: 5px; cursor: pointer;}
+        #b2         { position: absolute; height: 45px; width: 150px; left: 16%; bottom: 1%; background-color: #d5d5d5; font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 14px; border-radius: 5px; cursor: pointer;}
+        #b3         { position: absolute; height: 45px; width: 150px; left: 31%; bottom: 1%; background-color: #d5d5d5; font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 14px; border-radius: 5px; cursor: pointer;}
+        #b4         { position: absolute; height: 45px; width: 150px; left: 46%; bottom: 1%; background-color: #d5d5d5; font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 14px; border-radius: 5px; cursor: pointer;}
+
+
+        .tableArea { position: absolute; right: 1%; background-color: black; height: auto; width: }
+
+
+    </style>
+
+    <title>Oakland University Vending Machine App</title>
+</head>
+<body>
+<div id = map></div>
+<div class = sBox>
+    <button id = searchB class="btnClass">Search</button>
+    <input type="text" id = inputB placeholder="Search By Item...">
+
+    <input type="checkbox" id = ch1 class = chk>
+    <div id = t1>VM1</div>
+    <input type="checkbox" id = ch2 class = chk>
+    <div id = t2>VM2</div>
+    <input type="checkbox" id = ch3 class = chk>
+    <div id = t3>VM3</div>
+    <input type="checkbox" id = ch4 class = chk>
+    <div id = t4>VM4</div>
+
+    <button class="btnClass" id = b1>Get Stocked Items</button>
+    <button class="btnClass" id = b2>Get All Items</button>
+    <button class="btnClass" id = b3>Add Vending Machine/Location</button>
+    <button class="btnClass" id = b4>Remove Stocked Item</button>
+</div>
+
+<div class = tableArea>
+    <table id = myTable>
+        <tr id = tableTopics >
+            <th>Lot</th>
+            <th>Part</th>
+            <th>Part Desc</th>
+            <th>Date Added</th>
+            <th>MFR</th>
+            <th>FBC</th>
+        </tr>
+    </table>
+</div>
+
+<script>
+    let webSocket = io.connect(location.host)
+    let msg
+
+    // let app = Vue.createApp({// creates the app object
+    //     data(){
+    //         return{
+    //         }
+    //     },
+    //     methods:{
+    //
+    //     }
+    // })
+    // app.component('search', {
+    //     template:
+    //         `
+    //             <div class = search>
+    //                 <input type="text" class = textBox>
+    //                 <div class = btn>Search</div>
+    //             </div>
+    //         `,
+    //     data(){
+    //         return{
+    //
+    //         }
+    //     },
+    //     computed:{
+    //     },
+    //     methods:{
+    //
+    //     }
+    // })
+    // app.mount()
+
+    webSocket.on('html', function(data) {
+        try {
+            msg = JSON.parse(data);
+
+            switch (msg.type) {
+
+                case '':
+
+                    break;
+                default:
+                    break;
+            }
+        } catch (ex) {
+        }
+    })
+
+</script>
+<script>
+
+    let map;
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: 42.669187, lng: -83.206954 },
+            zoom: 15,
+            mapId:'myMapSkin'
+        });
+    }
+
+
+
+</script>
+<script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC2kL6zf3UM-tMJnuhWRA4qbDZs6Ce9qHo&callback=initMap"
+        async
+></script>
+<script>
+
+</script>
+</body>
+</html>
